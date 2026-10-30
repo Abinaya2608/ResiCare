@@ -1,0 +1,127 @@
+
+{% extends "base.html" %}
+
+{% block title %}Maintenance Dues | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold">Maintenance Dues &amp; Payments</h1>
+            <p class="text-secondary mb-0">
+                View monthly charges, payments and outstanding balances.
+            </p>
+        </div>
+
+        {% if role == "MANAGEMENT" %}
+        <a href="{% url 'community:maintenance_charge_create' %}"
+           class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create Monthly Charge
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Total Charges</div>
+                    <div class="h3 fw-bold mb-0">₹{{ total_charges|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Payments Recorded</div>
+                    <div class="h3 fw-bold mb-0">₹{{ total_paid|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Outstanding Balance</div>
+                    <div class="h3 fw-bold mb-0">₹{{ total_balance|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="get" class="mb-3 d-flex flex-wrap gap-2">
+        <select name="status" class="form-select" style="max-width: 260px;">
+            <option value="">All payment statuses</option>
+            <option value="PENDING" {% if status_filter == "PENDING" %}selected{% endif %}>Pending</option>
+            <option value="PARTIAL" {% if status_filter == "PARTIAL" %}selected{% endif %}>Partially Paid</option>
+            <option value="PAID" {% if status_filter == "PAID" %}selected{% endif %}>Paid</option>
+        </select>
+        <button type="submit" class="btn btn-outline-primary">Filter</button>
+        <a href="{% url 'community:maintenance_dues' %}" class="btn btn-light">Clear</a>
+    </form>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Billing Month</th>
+                        {% if role == "MANAGEMENT" %}<th>Apartment</th>{% endif %}
+                        <th>Charge</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for charge in charges %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ charge.billing_month|date:"F Y" }}</div>
+                            <div class="small text-secondary">{{ charge.description }}</div>
+                        </td>
+
+                        {% if role == "MANAGEMENT" %}
+                        <td>{{ charge.apartment }}</td>
+                        {% endif %}
+
+                        <td>₹{{ charge.amount_due|floatformat:2 }}</td>
+                        <td>₹{{ charge.total_paid|floatformat:2 }}</td>
+                        <td class="fw-semibold">₹{{ charge.balance_due|floatformat:2 }}</td>
+                        <td>{{ charge.due_date|date:"d M Y" }}</td>
+                        <td>
+                            {% if charge.payment_status == "PAID" %}
+                            <span class="badge text-bg-success">Paid</span>
+                            {% elif charge.payment_status == "PARTIAL" %}
+                            <span class="badge text-bg-info">Partially Paid</span>
+                            {% else %}
+                            <span class="badge text-bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'community:maintenance_charge_detail' charge.pk %}"
+                               class="btn btn-sm btn-outline-primary">Details</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bi bi-receipt fs-2 text-secondary"></i>
+                            <p class="fw-semibold mt-2 mb-1">No maintenance charges yet</p>
+                            <p class="text-secondary mb-0">
+                                Charges will appear here when management creates them.
+                            </p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <a href="{% url 'dashboard' %}" class="btn btn-light mt-4">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}

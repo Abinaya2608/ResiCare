@@ -1,0 +1,130 @@
+
+{% extends "base.html" %}
+
+{% block title %}Delivery Details | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 850px;">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                <div>
+                    <h1 class="h3 fw-bold">{{ delivery.sender_name }}</h1>
+                    <p class="text-secondary">{{ delivery.description }}</p>
+                </div>
+
+                <span class="badge
+                    {% if delivery.status == 'COLLECTED' %}text-bg-success
+                    {% elif delivery.status == 'RETURNED' %}text-bg-secondary
+                    {% elif delivery.status == 'NOTIFIED' %}text-bg-info
+                    {% else %}text-bg-warning{% endif %}">
+                    {{ delivery.get_status_display }}
+                </span>
+            </div>
+
+            <hr>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-secondary small">Resident</div>
+                    <div class="fw-semibold">
+                        {{ delivery.resident.user.get_full_name|default:delivery.resident.user.username }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Apartment</div>
+                    <div class="fw-semibold">
+                        {{ delivery.resident.apartment|default:"Not assigned" }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Tracking Number</div>
+                    <div>{{ delivery.tracking_number|default:"Not provided" }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Received At</div>
+                    <div>{{ delivery.received_at|date:"d M Y, h:i A" }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Received By</div>
+                    <div>
+                        {% if delivery.received_by %}
+                            {{ delivery.received_by.get_full_name|default:delivery.received_by.username }}
+                        {% else %}
+                            Not recorded
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Resident Notified At</div>
+                    <div>
+                        {% if delivery.notified_at %}
+                            {{ delivery.notified_at|date:"d M Y, h:i A" }}
+                        {% else %}
+                            Not notified
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Collected At</div>
+                    <div>
+                        {% if delivery.collected_at %}
+                            {{ delivery.collected_at|date:"d M Y, h:i A" }}
+                        {% else %}
+                            Not collected
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Notes</div>
+                    <div>{{ delivery.notes|default:"No additional notes."|linebreaksbr }}</div>
+                </div>
+            </div>
+
+            <hr>
+
+            {% if is_delivery_staff %}
+                {% if delivery.status == "RECEIVED" %}
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="notify" class="btn btn-primary">
+                        <i class="bi bi-bell"></i> Mark Resident Notified
+                    </button>
+                </form>
+                {% endif %}
+
+                {% if delivery.status == "RECEIVED" or delivery.status == "NOTIFIED" %}
+                <form method="post" class="d-inline"
+                      onsubmit="return confirm('Mark this parcel as returned to the sender?');">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="return" class="btn btn-outline-danger">
+                        Mark Returned
+                    </button>
+                </form>
+                {% endif %}
+            {% endif %}
+
+            {% if is_resident and delivery.status == "NOTIFIED" %}
+            <form method="post" class="d-inline"
+                  onsubmit="return confirm('Confirm that you have collected this parcel?');">
+                {% csrf_token %}
+                <button type="submit" name="action" value="collect" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Confirm Collection
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'community:deliveries' %}" class="btn btn-light">
+                Back to Deliveries
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

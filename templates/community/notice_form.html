@@ -1,0 +1,35 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 800px;">
+        <div class="card-body p-4 p-md-5">
+            <h1 class="h3 fw-bold mb-4">{{ page_title }}</h1>
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="mb-3">
+                    {% if field.field.widget.input_type == "checkbox" %}
+                    <div class="form-check">
+                        {{ field }}
+                        <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    </div>
+                    {% else %}
+                    <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Save Notice</button>
+                <a href="{% url 'community:dashboard' %}" class="btn btn-light">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

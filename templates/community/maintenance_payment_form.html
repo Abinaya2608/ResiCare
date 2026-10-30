@@ -1,0 +1,64 @@
+
+{% extends "base.html" %}
+
+{% block title %}Record Payment | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 750px;">
+        <div class="card-body p-4 p-md-5">
+            <h1 class="h3 fw-bold">Record Maintenance Payment</h1>
+            <p class="text-secondary">
+                {{ charge.apartment }} · {{ charge.billing_month|date:"F Y" }}
+            </p>
+
+            <div class="alert alert-light border rounded-3 mb-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total charge</span>
+                    <strong>₹{{ charge.amount_due|floatformat:2 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Previously paid</span>
+                    <strong>₹{{ charge.total_paid|floatformat:2 }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">Outstanding balance</span>
+                    <strong class="text-danger">₹{{ charge.balance_due|floatformat:2 }}</strong>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+
+                    {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Save Payment Record
+                </button>
+                <a href="{% url 'community:maintenance_charge_detail' charge.pk %}"
+                   class="btn btn-light">Cancel</a>
+            </form>
+
+            <p class="small text-secondary mt-3 mb-0">
+                Saving this form records a payment in ResiCare. It does not initiate a bank transfer or collect money electronically.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

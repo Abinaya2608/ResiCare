@@ -1,0 +1,117 @@
+
+{% extends "base.html" %}
+
+{% block title %}Gate Entry Details | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 850px;">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                    <p class="text-secondary small mb-1">Gate Record #{{ entry.pk }}</p>
+                    <h1 class="h3 fw-bold">{{ entry.person_name }}</h1>
+                    <p class="text-secondary mb-0">{{ entry.get_entry_type_display }}</p>
+                </div>
+
+                {% if entry.status == "INSIDE" %}
+                <span class="badge text-bg-success">Currently Inside</span>
+                {% else %}
+                <span class="badge text-bg-secondary">Exited</span>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="text-secondary small">Phone Number</div>
+                    <div>{{ entry.phone_number|default:"Not provided" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Vehicle Registration</div>
+                    <div>{{ entry.vehicle_number|default:"Not applicable" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Vehicle Type</div>
+                    <div>{{ entry.vehicle_type|default:"Not provided" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Organization</div>
+                    <div>{{ entry.organization|default:"Not provided" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Resident Visited</div>
+                    <div>
+                        {% if entry.resident %}
+                            {{ entry.resident.user.get_full_name|default:entry.resident.user.username }}
+                            {% if entry.resident.apartment %}
+                                — {{ entry.resident.apartment }}
+                            {% endif %}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Purpose</div>
+                    <div>{{ entry.purpose }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Entry Time</div>
+                    <div>{{ entry.entry_time|date:"d M Y, h:i A" }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Entry Recorded By</div>
+                    <div>
+                        {% if entry.recorded_by %}
+                            {{ entry.recorded_by.get_full_name|default:entry.recorded_by.username }}
+                        {% else %}
+                            Not available
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Exit Time</div>
+                    <div>
+                        {% if entry.exit_time %}
+                            {{ entry.exit_time|date:"d M Y, h:i A" }}
+                        {% else %}
+                            Not recorded
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-secondary small">Exit Recorded By</div>
+                    <div>
+                        {% if entry.exit_recorded_by %}
+                            {{ entry.exit_recorded_by.get_full_name|default:entry.exit_recorded_by.username }}
+                        {% else %}
+                            Not recorded
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="text-secondary small">Additional Notes</div>
+                    <div>{{ entry.notes|default:"No additional notes."|linebreaksbr }}</div>
+                </div>
+            </div>
+
+            {% if entry.status == "INSIDE" %}
+            <hr>
+            <form method="post"
+                  onsubmit="return confirm('Record the exit of this person or vehicle?');">
+                {% csrf_token %}
+                <button type="submit" name="action" value="mark_exit" class="btn btn-success">
+                    <i class="bi bi-box-arrow-right"></i> Record Exit
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'community:gate_logs' %}" class="btn btn-light mt-3">
+                <i class="bi bi-arrow-left"></i> Back to Gate Logs
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

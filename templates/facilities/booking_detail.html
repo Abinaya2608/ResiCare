@@ -1,0 +1,161 @@
+
+{% extends "base.html" %}
+
+{% block title %}Booking #{{ booking.id }} | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5">
+
+    <a href="{% url 'facilities:dashboard' %}"
+       class="text-decoration-none text-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Facilities
+    </a>
+
+    <div class="row g-4 mt-1">
+        <div class="col-12 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-lg-5">
+
+                    <div class="small text-secondary mb-2">
+                        Booking Reference #{{ booking.id }}
+                    </div>
+                    <h1 class="h3 fw-bold mb-3">{{ booking.facility.name }}</h1>
+
+                    <span class="badge
+                        {% if booking.status == 'APPROVED' %}text-bg-success
+                        {% elif booking.status == 'REJECTED' %}text-bg-danger
+                        {% elif booking.status == 'PENDING' %}text-bg-warning
+                        {% else %}text-bg-secondary{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+
+                    <hr class="my-4">
+
+                    <div class="row g-4">
+                        <div class="col-sm-6">
+                            <div class="small text-secondary">Facility location</div>
+                            <div class="fw-semibold">{{ booking.facility.location }}</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="small text-secondary">Capacity</div>
+                            <div class="fw-semibold">{{ booking.facility.capacity }} people</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="small text-secondary">Booking date</div>
+                            <div class="fw-semibold">{{ booking.booking_date|date:"l, d F Y" }}</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="small text-secondary">Time slot</div>
+                            <div class="fw-semibold">
+                                {{ booking.start_time|time:"h:i A" }} – {{ booking.end_time|time:"h:i A" }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="small text-secondary">Purpose</div>
+                            <div class="fw-semibold">{{ booking.purpose }}</div>
+                        </div>
+
+                        {% if role != "RESIDENT" %}
+                        <div class="col-12">
+                            <div class="small text-secondary">Requested by</div>
+                            <div class="fw-semibold">
+                                {{ booking.resident.user.get_full_name|default:booking.resident.user.username }}
+                            </div>
+                            <div class="small text-secondary">
+                                Apartment:
+                                {% if booking.resident.apartment %}
+                                    {{ booking.resident.apartment }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-12">
+                            <div class="small text-secondary">Request submitted</div>
+                            <div class="fw-semibold">{{ booking.created_at|date:"d M Y, h:i A" }}</div>
+                        </div>
+
+                        {% if booking.reviewed_by %}
+                        <div class="col-12">
+                            <div class="small text-secondary">Reviewed by</div>
+                            <div class="fw-semibold">
+                                {{ booking.reviewed_by.get_full_name|default:booking.reviewed_by.username }}
+                            </div>
+                            {% if booking.reviewed_at %}
+                            <div class="small text-secondary">
+                                {{ booking.reviewed_at|date:"d M Y, h:i A" }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if booking.management_notes %}
+                        <div class="col-12">
+                            <div class="small text-secondary mb-2">Management notes</div>
+                            <div class="bg-light rounded-3 p-3"
+                                 style="white-space:pre-wrap">{{ booking.management_notes }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if role == "RESIDENT" and booking.status == "PENDING" %}
+                    <hr class="my-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="cancel">
+                        <button type="submit" class="btn btn-outline-danger"
+                                onclick="return confirm('Cancel this booking request?')">
+                            <i class="bi bi-x-circle me-1"></i>Cancel Request
+                        </button>
+                    </form>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        {% if role == "MANAGEMENT" and booking.status == "PENDING" %}
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 fw-bold">Review Booking</h2>
+                    <p class="text-secondary small">
+                        Approve the request if the facility and time slot are available.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% for field in review_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}"
+                                   class="form-label fw-semibold">
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" name="action" value="approve"
+                                    class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i>Approve Booking
+                            </button>
+                            <button type="submit" name="action" value="reject"
+                                    class="btn btn-outline-danger">
+                                <i class="bi bi-x-circle me-2"></i>Reject Booking
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

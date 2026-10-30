@@ -1,0 +1,49 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 800px;">
+        <div class="card-body p-4 p-md-5">
+            <h1 class="h3 fw-bold">{{ page_title }}</h1>
+            <p class="text-secondary mb-4">
+                Create a monthly maintenance charge for an apartment.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+
+                    {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Create Charge
+                </button>
+                <a href="{% url 'community:maintenance_dues' %}" class="btn btn-light">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

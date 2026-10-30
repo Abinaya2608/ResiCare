@@ -1,0 +1,529 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | ResiCare{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-welcome {
+        background: linear-gradient(135deg, #173b67, #2878a8);
+        color: white;
+        border-radius: 22px;
+        padding: 32px;
+        margin-bottom: 28px;
+    }
+
+    .dashboard-feature-card {
+        height: 100%;
+        min-height: 230px;
+        border: 1px solid #e8edf3;
+        border-radius: 18px;
+        background: #fff;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .dashboard-feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 28px rgba(24, 54, 86, .12);
+    }
+
+    .dashboard-link {
+        display: block;
+        height: 100%;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .dashboard-link:focus-visible {
+        outline: 3px solid #2878a8;
+        outline-offset: 4px;
+        border-radius: 18px;
+    }
+
+    .dashboard-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 54px;
+        height: 54px;
+        flex-shrink: 0;
+        border-radius: 15px;
+        background: #eaf3ff;
+        color: #2463a6;
+    }
+
+    .dashboard-section-title {
+        font-weight: 750;
+        color: #19334f;
+        margin-bottom: 18px;
+    }
+
+    .card-description {
+        min-height: 44px;
+    }
+
+    .dashboard-role {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 30px;
+        background: rgba(255, 255, 255, .18);
+        font-size: .85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Welcome Section -->
+    <section class="dashboard-welcome">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="dashboard-role">
+                    {{ user.get_role_display|default:user.role }}
+                </span>
+
+                <h1 class="h2 fw-bold mt-3 mb-2">
+                    Welcome, {{ user.first_name|default:user.username }}!
+                </h1>
+
+                <p class="mb-0 opacity-75">
+                    Manage your residential community in one place with ResiCare.
+                </p>
+            </div>
+
+            <i class="bi bi-buildings" style="font-size: 4rem;"></i>
+        </div>
+    </section>
+
+
+    <!-- ==================== RESIDENT DASHBOARD ==================== -->
+    {% if user.role == "RESIDENT" %}
+
+    <h2 class="h4 dashboard-section-title">Resident Services</h2>
+
+    <div class="row g-4">
+
+        <!-- My Profile -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'residents:my_profile' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-person-vcard fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">My Profile</h3>
+                        <p class="text-secondary small card-description">View your resident details and apartment information.</p>
+                        <span class="text-primary small">View profile <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Visitor Invitations -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'visitors:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-person-walking fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Visitor Invitations</h3>
+                        <p class="text-secondary small card-description">Invite visitors and check invitation approval status.</p>
+                        <span class="text-primary small">Manage visitors <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Maintenance Requests -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'maintenance:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-tools fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Maintenance Requests</h3>
+                        <p class="text-secondary small card-description">Report repairs and track the progress of your requests.</p>
+                        <span class="text-primary small">View requests <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Facility Bookings -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'facilities:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-calendar-check fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Facility Bookings</h3>
+                        <p class="text-secondary small card-description">Explore amenities, request bookings and track approvals.</p>
+                        <span class="text-primary small">View facilities <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Notices and Events -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-megaphone fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Notices &amp; Events</h3>
+                        <p class="text-secondary small card-description">Read community announcements and discover upcoming events.</p>
+                        <span class="text-primary small">Community updates <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Maintenance Dues -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:maintenance_dues' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-cash-coin fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Maintenance Dues</h3>
+                        <p class="text-secondary small card-description">View your apartment charges, payments and outstanding balance.</p>
+                        <span class="text-primary small">View dues <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- My Deliveries -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:deliveries' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-box-seam fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">My Deliveries</h3>
+                        <p class="text-secondary small card-description">Track parcels received for your apartment.</p>
+                        <span class="text-primary small">Track deliveries <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Notifications -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:notifications' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-bell fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Notifications</h3>
+                        <p class="text-secondary small card-description">View your latest alerts and community updates.</p>
+                        <span class="text-primary small">View notifications <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Report an Incident -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:incident_create' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-exclamation-triangle fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Report an Incident</h3>
+                        <p class="text-secondary small card-description">Report a safety issue or other community incident.</p>
+                        <span class="text-primary small">Submit a report <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- ==================== SECURITY DASHBOARD ==================== -->
+    {% elif user.role == "SECURITY" %}
+
+    <h2 class="h4 dashboard-section-title">Security Operations</h2>
+
+    <div class="row g-4">
+
+        <!-- Visitor Verification -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'visitors:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-shield-check fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Visitor Verification</h3>
+                        <p class="text-secondary small card-description">Review approved invitations and record visitor entry and exit.</p>
+                        <span class="text-primary small">Open verification <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Assigned Maintenance -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'maintenance:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-wrench-adjustable fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Assigned Maintenance</h3>
+                        <p class="text-secondary small card-description">Access maintenance tasks permitted for your account.</p>
+                        <span class="text-primary small">View tasks <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Deliveries -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:deliveries' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-box-seam fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Deliveries</h3>
+                        <p class="text-secondary small card-description">Register deliveries and maintain delivery records.</p>
+                        <span class="text-primary small">Manage deliveries <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Incident Reports -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:incidents' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-exclamation-triangle fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Incident Reports</h3>
+                        <p class="text-secondary small card-description">Record and review incidents within the community.</p>
+                        <span class="text-primary small">View incidents <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Facility Information -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'facilities:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-calendar2-check fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Facility Information</h3>
+                        <p class="text-secondary small card-description">Check community facility and booking information.</p>
+                        <span class="text-primary small">View facilities <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Gate Entry Logs -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:gate_logs' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-journal-check fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Gate Entry Logs</h3>
+                        <p class="text-secondary small card-description">Record and review visitor, vehicle and service personnel entries.</p>
+                        <span class="text-primary small">Open gate logs <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Walk-in Visitors -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'visitors:walk_in_checkin' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-person-plus fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Walk-in Visitors</h3>
+                        <p class="text-secondary small card-description">Register visitors who arrive without a prior invitation.</p>
+                        <span class="text-primary small">Register visitor <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Operational Reports -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:management_reports' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-clipboard-data fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Operational Reports</h3>
+                        <p class="text-secondary small card-description">Review visitor activity, incidents and operational summaries.</p>
+                        <span class="text-primary small">View reports <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Security Notifications -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:notifications' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-bell fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Notifications</h3>
+                        <p class="text-secondary small card-description">View security alerts and community updates.</p>
+                        <span class="text-primary small">View notifications <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+
+    <!-- ==================== MANAGEMENT DASHBOARD ==================== -->
+    {% elif user.role == "MANAGEMENT" %}
+
+    <h2 class="h4 dashboard-section-title">Community Management</h2>
+
+    <div class="row g-4">
+
+        <!-- Residents and Apartments -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="/admin/" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-buildings fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Residents &amp; Apartments</h3>
+                        <p class="text-secondary small card-description">Manage apartment units and resident profiles in the administration area.</p>
+                        <span class="text-primary small">Manage records <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Visitor Management -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'visitors:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-person-check fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Visitor Management</h3>
+                        <p class="text-secondary small card-description">Review visitor invitations and monitor entry logs.</p>
+                        <span class="text-primary small">Manage visitors <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Maintenance Oversight -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'maintenance:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-clipboard2-check fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Maintenance Oversight</h3>
+                        <p class="text-secondary small card-description">Review and monitor maintenance requests.</p>
+                        <span class="text-primary small">Manage requests <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Facility Management -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'facilities:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-calendar2-week fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Facility Management</h3>
+                        <p class="text-secondary small card-description">Manage amenities and review facility booking requests.</p>
+                        <span class="text-primary small">Open facilities <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Notices and Events -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:dashboard' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-megaphone fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Notices &amp; Events</h3>
+                        <p class="text-secondary small card-description">Publish notices and organize community events.</p>
+                        <span class="text-primary small">Community updates <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Security Oversight -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:incidents' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-shield-exclamation fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Security Oversight</h3>
+                        <p class="text-secondary small card-description">Review reported incidents and community safety records.</p>
+                        <span class="text-primary small">Review incidents <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Management Reports -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:management_reports' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-bar-chart-line fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Management Reports</h3>
+                        <p class="text-secondary small card-description">Review visitor, maintenance, facility and incident summaries.</p>
+                        <span class="text-primary small">View reports <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Maintenance Payments -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:maintenance_dues' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-wallet2 fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Maintenance Payments</h3>
+                        <p class="text-secondary small card-description">Monitor apartment dues and record payments.</p>
+                        <span class="text-primary small">Manage payments <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Gate Logs -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:gate_logs' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-shield-check fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Gate Logs</h3>
+                        <p class="text-secondary small card-description">Monitor visitor, vehicle and service personnel movements.</p>
+                        <span class="text-primary small">View gate logs <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Notifications -->
+        <div class="col-sm-6 col-lg-4">
+            <a href="{% url 'community:notifications' %}" class="dashboard-link">
+                <div class="card dashboard-feature-card">
+                    <div class="card-body p-4">
+                        <div class="dashboard-icon"><i class="bi bi-bell fs-2"></i></div>
+                        <h3 class="h5 fw-bold mt-3">Notifications</h3>
+                        <p class="text-secondary small card-description">Review alerts and system updates.</p>
+                        <span class="text-primary small">View notifications <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="alert alert-warning">
+        Your account does not have a recognized role. Please contact the administrator.
+    </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}

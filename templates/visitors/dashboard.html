@@ -1,0 +1,435 @@
+
+{% extends "base.html" %}
+
+{% block title %}Visitor Management | ResiCare{% endblock %}
+
+{% block extra_css %}
+<style>
+    .visitor-hero {
+        background: linear-gradient(125deg, #153e35, #24745c);
+        color: #fff;
+        border-radius: 22px;
+        padding: 30px;
+    }
+
+    .visitor-card,
+    .section-card {
+        background: #fff;
+        border: 1px solid #e8ecef;
+        border-radius: 18px;
+    }
+
+    .visitor-card {
+        height: 100%;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .visitor-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(20, 50, 40, .08);
+    }
+
+    .section-card {
+        padding: 24px;
+    }
+
+    .status-pill {
+        display: inline-block;
+        padding: 5px 11px;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+        background: #eef1f4;
+        color: #48525c;
+        white-space: nowrap;
+    }
+
+    .status-approved {
+        background: #d9f4e5;
+        color: #17683b;
+    }
+
+    .status-pending {
+        background: #fff0c2;
+        color: #805b00;
+    }
+
+    .status-rejected,
+    .status-cancelled {
+        background: #ffe0e0;
+        color: #9a2929;
+    }
+
+    .table th {
+        color: #68737d;
+        font-size: .8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 35px 12px;
+        color: #68737d;
+    }
+
+    @media (max-width: 576px) {
+        .visitor-hero {
+            padding: 22px;
+        }
+
+        .section-card {
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5">
+
+    <!-- Page header -->
+    <section class="visitor-hero mb-4">
+        <div class="d-flex flex-column flex-md-row
+                    align-items-md-center justify-content-between gap-3">
+            <div>
+                <div class="small mb-2 opacity-75">
+                    RESICARE / COMMUNITY SERVICES
+                </div>
+                <h1 class="h2 fw-bold mb-2">Visitor Management</h1>
+                <p class="mb-0 opacity-75">
+                    Manage visitor invitations and track community entry and exit.
+                </p>
+            </div>
+
+            {% if role == "RESIDENT" %}
+                <a href="{% url 'visitors:create_invitation' %}"
+                   class="btn btn-light btn-lg fw-semibold">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Invite a visitor
+                </a>
+            {% elif role == "SECURITY" %}
+                <a href="{% url 'visitors:walk_in_checkin' %}"
+                   class="btn btn-light btn-lg fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    Register walk-in
+                </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="card visitor-card">
+                <div class="card-body p-4">
+                    <div class="text-secondary small mb-2">
+                        INVITATIONS SHOWN
+                    </div>
+                    <div class="h2 fw-bold mb-1">
+                        {{ invitations|length }}
+                    </div>
+                    <div class="text-secondary small">
+                        Invitations available to your account
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="card visitor-card">
+                <div class="card-body p-4">
+                    <div class="text-secondary small mb-2">
+                        VISIT LOGS SHOWN
+                    </div>
+                    <div class="h2 fw-bold mb-1">
+                        {{ logs|length }}
+                    </div>
+                    <div class="text-secondary small">
+                        Recorded visitor visits
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="card visitor-card">
+                <div class="card-body p-4">
+                    <div class="text-secondary small mb-2">
+                        CURRENTLY INSIDE
+                    </div>
+                    <div class="h2 fw-bold mb-1">
+                        {{ currently_inside }}
+                    </div>
+                    <div class="text-secondary small">
+                        Visitors with an entry and no recorded exit
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Management review queue -->
+    {% if role == "MANAGEMENT" %}
+    <section class="section-card mb-4">
+        <h2 class="h5 fw-bold mb-3">Pending review</h2>
+
+        {% if pending_invitations %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Visitor</th>
+                        <th>Resident</th>
+                        <th>Expected arrival</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invitation in pending_invitations %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">
+                                {{ invitation.visitor_name }}
+                            </div>
+                            <small class="text-secondary">
+                                {{ invitation.purpose }}
+                            </small>
+                        </td>
+                        <td>
+                            {{ invitation.resident.user.get_full_name|default:invitation.resident.user.username }}
+                        </td>
+                        <td>
+                            {{ invitation.expected_at|date:"d M Y, h:i A" }}
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">
+                                <form method="post"
+                                      action="{% url 'visitors:review_invitation' invitation.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        Approve
+                                    </button>
+                                </form>
+
+                                <form method="post"
+                                      action="{% url 'visitors:review_invitation' invitation.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger">
+                                        Reject
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-check2-circle fs-1 d-block mb-3"></i>
+            <h3 class="h6 fw-bold">No pending invitations</h3>
+            <p class="mb-0">New requests will appear here for review.</p>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- Invitations -->
+    <section class="section-card mb-4">
+        <h2 class="h5 fw-bold mb-1">Visitor invitations</h2>
+        <p class="text-secondary small mb-3">
+            Review invitation details and approval status.
+        </p>
+
+        {% if invitations %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Visitor</th>
+                        {% if role != "RESIDENT" %}
+                        <th>Resident</th>
+                        {% endif %}
+                        <th>Expected arrival</th>
+                        <th>Status</th>
+                        {% if role == "RESIDENT" or role == "SECURITY" %}
+                        <th>Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invitation in invitations %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">
+                                {{ invitation.visitor_name }}
+                            </div>
+                            <small class="text-secondary">
+                                {{ invitation.purpose }}
+                            </small>
+                        </td>
+
+                        {% if role != "RESIDENT" %}
+                        <td>
+                            {{ invitation.resident.user.get_full_name|default:invitation.resident.user.username }}
+                        </td>
+                        {% endif %}
+
+                        <td>
+                            {{ invitation.expected_at|date:"d M Y, h:i A" }}
+                        </td>
+
+                        <td>
+                            <span class="status-pill status-{{ invitation.status|lower }}">
+                                {{ invitation.get_status_display }}
+                            </span>
+                        </td>
+
+                        {% if role == "RESIDENT" %}
+                        <td>
+                            {% if invitation.status == "PENDING" %}
+                            <form method="post"
+                                  action="{% url 'visitors:cancel_invitation' invitation.id %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger">
+                                    Cancel
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        {% elif role == "SECURITY" %}
+                        <td>
+                            {% if invitation.status == "APPROVED" %}
+                            <form method="post"
+                                  action="{% url 'visitors:check_in' invitation.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    Check in
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-secondary small">
+                                Approval required
+                            </span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-calendar2-check fs-1 d-block mb-3"></i>
+            <h3 class="h6 fw-bold">No visitor invitations yet</h3>
+            <p class="mb-0">
+                {% if role == "RESIDENT" %}
+                    Use Invite a visitor to submit your first request.
+                {% else %}
+                    Invitations will appear here when residents submit them.
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Entry and exit logs -->
+    <section class="section-card">
+        <h2 class="h5 fw-bold mb-1">Visitor entry and exit logs</h2>
+        <p class="text-secondary small mb-3">
+            Actual visits recorded by security staff.
+        </p>
+
+        {% if logs %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Visitor</th>
+                        <th>Entry time</th>
+                        <th>Exit time</th>
+                        <th>Status</th>
+                        {% if role == "SECURITY" %}
+                        <th>Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ log.visitor_name }}</div>
+                            <small class="text-secondary">{{ log.purpose }}</small>
+                        </td>
+                        <td>
+                            {% if log.entry_at %}
+                                {{ log.entry_at|date:"d M Y, h:i A" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.exit_at %}
+                                {{ log.exit_at|date:"d M Y, h:i A" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.is_inside %}
+                                <span class="status-pill status-approved">Inside</span>
+                            {% elif log.exit_at %}
+                                <span class="status-pill">Checked out</span>
+                            {% else %}
+                                <span class="status-pill">Not checked in</span>
+                            {% endif %}
+                        </td>
+
+                        {% if role == "SECURITY" %}
+                        <td>
+                            {% if log.is_inside %}
+                            <form method="post"
+                                  action="{% url 'visitors:check_out' log.id %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger">
+                                    Check out
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-secondary">—</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-text fs-1 d-block mb-3"></i>
+            <h3 class="h6 fw-bold">No visitor logs yet</h3>
+            <p class="mb-0">
+                Entry and exit records will appear here after visits are recorded.
+            </p>
+        </div>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}

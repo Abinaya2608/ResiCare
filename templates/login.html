@@ -1,0 +1,180 @@
+
+{% extends "base.html" %}
+
+{% block title %}Sign In | ResiCare{% endblock %}
+
+{% block public_content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center py-5"
+     style="background: linear-gradient(135deg, #edf4ff, #f8fafc);">
+
+    <div class="row w-100 justify-content-center align-items-center g-0"
+         style="max-width: 1000px;">
+
+        <div class="col-lg-6 d-none d-lg-block">
+            <div class="p-5 text-white h-100 rounded-start-4"
+                 style="background: linear-gradient(145deg, #153e75, #2563a6); min-height: 500px;">
+
+                <div class="mb-5">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-4"
+                         style="width: 58px; height: 58px; background: rgba(255,255,255,.15);">
+                        <i class="bi bi-buildings fs-2"></i>
+                    </div>
+
+                    <h1 class="fw-bold display-6">Welcome to ResiCare</h1>
+                    <p class="text-white-50 mt-3">
+                        Your residential community, connected in one place.
+                    </p>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                    <i class="bi bi-shield-check fs-3"></i>
+                    <div>
+                        <h6 class="fw-semibold">Secure community access</h6>
+                        <p class="small text-white-50 mb-0">
+                            Role-based access for residents, security personnel,
+                            and management.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mb-4">
+                    <i class="bi bi-tools fs-3"></i>
+                    <div>
+                        <h6 class="fw-semibold">Simplified maintenance</h6>
+                        <p class="small text-white-50 mb-0">
+                            Keep track of maintenance requests and community services.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <i class="bi bi-people fs-3"></i>
+                    <div>
+                        <h6 class="fw-semibold">A connected community</h6>
+                        <p class="small text-white-50 mb-0">
+                            Stay informed about visitors, notices, and facilities.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="bg-white p-4 p-md-5 rounded-4 rounded-lg-0 shadow-sm"
+                 style="min-height: 500px;">
+
+                <div class="mb-4">
+                    <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary mb-3">
+                        COMMUNITY PORTAL
+                    </span>
+                    <h2 class="fw-bold text-dark">Sign in to your account</h2>
+                    <p class="text-secondary">
+                        Enter your credentials to continue to ResiCare.
+                    </p>
+                </div>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        The username or password is incorrect. Please try again.
+                    </div>
+                {% endif %}
+
+                {% if next %}
+                    {% if user.is_authenticated %}
+                        <div class="alert alert-warning" role="alert">
+                            Your account does not have permission to access that page.
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="next" value="{{ next }}">
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label fw-semibold">
+                            Username
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-person text-secondary"></i>
+                            </span>
+                            <input
+                                type="text"
+                                name="username"
+                                id="id_username"
+                                class="form-control py-2"
+                                placeholder="Enter your username"
+                                autocomplete="username"
+                                required
+                                autofocus
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label fw-semibold">
+                            Password
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-lock text-secondary"></i>
+                            </span>
+                            <input
+                                type="password"
+                                name="password"
+                                id="id_password"
+                                class="form-control py-2"
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required
+                            >
+                            <button
+                                class="btn btn-outline-secondary"
+                                type="button"
+                                id="togglePassword"
+                                aria-label="Show password"
+                            >
+                                <i class="bi bi-eye" id="passwordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-primary w-100 py-2 fw-semibold">
+                        Sign In <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="small text-secondary mb-0">
+                        Need access? Contact your residential management team.
+                    </p>
+                </div>
+
+                <div class="text-center mt-4 pt-3 border-top">
+                    <span class="small text-secondary">
+                        &copy; {% now "Y" %} ResiCare · Residential Community Management
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("togglePassword").addEventListener("click", function () {
+        const passwordField = document.getElementById("id_password");
+        const passwordIcon = document.getElementById("passwordIcon");
+        const isPassword = passwordField.type === "password";
+
+        passwordField.type = isPassword ? "text" : "password";
+        passwordIcon.className = isPassword ? "bi bi-eye-slash" : "bi bi-eye";
+        this.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+    });
+</script>
+{% endblock %}

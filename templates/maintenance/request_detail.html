@@ -1,0 +1,137 @@
+
+{% extends "base.html" %}
+
+{% block title %}Request #{{ maintenance_request.id }} | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5">
+    <a href="{% url 'maintenance:dashboard' %}"
+       class="text-decoration-none text-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Maintenance
+    </a>
+
+    <div class="row g-4 mt-1">
+        <div class="col-12 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex flex-wrap justify-content-between gap-3 mb-4">
+                        <div>
+                            <div class="small text-secondary mb-1">
+                                Maintenance Request #{{ maintenance_request.id }}
+                            </div>
+                            <h1 class="h3 fw-bold mb-2">
+                                {{ maintenance_request.title }}
+                            </h1>
+                            <span class="badge text-bg-success">
+                                {{ maintenance_request.get_status_display }}
+                            </span>
+                        </div>
+                        <span class="badge text-bg-light border align-self-start">
+                            {{ maintenance_request.get_priority_display }} Priority
+                        </span>
+                    </div>
+
+                    <hr>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6">
+                            <div class="small text-secondary">Category</div>
+                            <div class="fw-semibold">
+                                {{ maintenance_request.get_category_display }}
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="small text-secondary">Location</div>
+                            <div class="fw-semibold">
+                                {{ maintenance_request.location }}
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="small text-secondary">Resident</div>
+                            <div class="fw-semibold">
+                                {{ maintenance_request.resident.user.get_full_name|default:maintenance_request.resident.user.username }}
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="small text-secondary">Submitted On</div>
+                            <div class="fw-semibold">
+                                {{ maintenance_request.created_at|date:"d M Y, h:i A" }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="small text-secondary mb-2">Description</div>
+                            <div class="bg-light rounded-3 p-3"
+                                 style="white-space: pre-wrap;">{{ maintenance_request.description }}</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="small text-secondary">Assigned Staff</div>
+                            <div class="fw-semibold">
+                                {% if maintenance_request.assigned_to %}
+                                    {{ maintenance_request.assigned_to.get_full_name|default:maintenance_request.assigned_to.username }}
+                                {% else %}
+                                    Not assigned yet
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if maintenance_request.resolution_notes %}
+                        <div class="col-12">
+                            <div class="small text-secondary mb-2">Resolution Notes</div>
+                            <div class="alert alert-success mb-0"
+                                 style="white-space: pre-wrap;">{{ maintenance_request.resolution_notes }}</div>
+                        </div>
+                        {% endif %}
+                        {% if maintenance_request.resolved_at %}
+                        <div class="col-12">
+                            <div class="small text-secondary">Resolved / Closed On</div>
+                            <div class="fw-semibold">
+                                {{ maintenance_request.resolved_at|date:"d M Y, h:i A" }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if can_manage %}
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 fw-bold mb-1">Manage Request</h2>
+                    <p class="text-secondary small mb-4">
+                        Update the progress and assign a staff member.
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if update_form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ update_form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        {% for field in update_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}"
+                                   class="form-label fw-semibold">
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-check2-circle me-2"></i>Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+
+{% extends "base.html" %}
+
+{% block title %}Incident Details | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 900px;">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                    <p class="text-secondary small mb-1">
+                        Incident #{{ incident.pk }}
+                    </p>
+                    <h1 class="h3 fw-bold">{{ incident.title }}</h1>
+                    <p class="text-secondary">{{ incident.get_category_display }}</p>
+                </div>
+
+                <span class="badge
+                    {% if incident.severity == 'CRITICAL' %}text-bg-danger
+                    {% elif incident.severity == 'HIGH' %}text-bg-warning
+                    {% else %}text-bg-secondary{% endif %}">
+                    {{ incident.get_severity_display }} Severity
+                </span>
+            </div>
+
+            <hr>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="text-secondary small">Location</div>
+                    <div class="fw-semibold">{{ incident.location }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Current Status</div>
+                    <div class="fw-semibold">{{ incident.get_status_display }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Reported By</div>
+                    <div>
+                        {% if incident.reported_by %}
+                            {{ incident.reported_by.get_full_name|default:incident.reported_by.username }}
+                        {% else %}
+                            Former user
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Assigned To</div>
+                    <div>
+                        {% if incident.assigned_to %}
+                            {{ incident.assigned_to.get_full_name|default:incident.assigned_to.username }}
+                        {% else %}
+                            Not assigned
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Reported On</div>
+                    <div>{{ incident.created_at|date:"d M Y, h:i A" }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="text-secondary small">Last Updated</div>
+                    <div>{{ incident.updated_at|date:"d M Y, h:i A" }}</div>
+                </div>
+
+                <div class="col-12">
+                    <div class="text-secondary small mb-1">Incident Description</div>
+                    <div>{{ incident.description|linebreaksbr }}</div>
+                </div>
+
+                <div class="col-12">
+                    <div class="text-secondary small mb-1">Resolution / Follow-up Notes</div>
+                    <div>{{ incident.resolution_notes|default:"No follow-up notes recorded."|linebreaksbr }}</div>
+                </div>
+
+                {% if incident.resolved_at %}
+                <div class="col-12">
+                    <div class="text-secondary small">Resolved / Closed On</div>
+                    <div>{{ incident.resolved_at|date:"d M Y, h:i A" }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if is_staff %}
+            <hr>
+            <h2 class="h5 fw-bold mb-3">Update Incident</h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+
+                    {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'community:incidents' %}" class="btn btn-light mt-3">
+                <i class="bi bi-arrow-left"></i> Back to Incidents
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,149 @@
+
+{% extends "base.html" %}
+
+{% block title %}Incident Management | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold">Incident Management</h1>
+            <p class="text-secondary mb-0">
+                Report safety concerns and track investigation progress.
+            </p>
+        </div>
+
+        <a href="{% url 'community:incident_create' %}" class="btn btn-primary">
+            <i class="bi bi-shield-plus"></i> Report Incident
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Total Reports</div>
+                    <div class="h2 fw-bold mb-0">{{ total_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Open Incidents</div>
+                    <div class="h2 fw-bold mb-0">{{ open_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-secondary small">Critical, Not Closed</div>
+                    <div class="h2 fw-bold mb-0">{{ critical_count }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="get" class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body d-flex flex-wrap gap-2">
+            <select name="status" class="form-select" style="max-width: 240px;">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <select name="severity" class="form-select" style="max-width: 240px;">
+                <option value="">All severity levels</option>
+                {% for value, label in severity_choices %}
+                <option value="{{ value }}" {% if severity_filter == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button class="btn btn-outline-primary" type="submit">Apply Filters</button>
+            <a href="{% url 'community:incidents' %}" class="btn btn-light">Clear</a>
+        </div>
+    </form>
+
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Incident</th>
+                        <th>Location</th>
+                        {% if role != "RESIDENT" %}<th>Reported By</th>{% endif %}
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for incident in incidents %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ incident.title }}</div>
+                            <div class="small text-secondary">
+                                {{ incident.get_category_display }}
+                                · {{ incident.created_at|date:"d M Y, h:i A" }}
+                            </div>
+                        </td>
+                        <td>{{ incident.location }}</td>
+
+                        {% if role != "RESIDENT" %}
+                        <td>
+                            {% if incident.reported_by %}
+                                {{ incident.reported_by.get_full_name|default:incident.reported_by.username }}
+                            {% else %}
+                                Former user
+                            {% endif %}
+                        </td>
+                        {% endif %}
+
+                        <td>
+                            {% if incident.severity == "CRITICAL" %}
+                            <span class="badge text-bg-danger">{{ incident.get_severity_display }}</span>
+                            {% elif incident.severity == "HIGH" %}
+                            <span class="badge text-bg-warning">{{ incident.get_severity_display }}</span>
+                            {% else %}
+                            <span class="badge text-bg-secondary">{{ incident.get_severity_display }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="badge text-bg-light border text-dark">
+                                {{ incident.get_status_display }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <a href="{% url 'community:incident_detail' incident.pk %}"
+                               class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bi bi-shield-check fs-2 text-secondary"></i>
+                            <p class="fw-semibold mt-2 mb-1">No incidents found</p>
+                            <p class="text-secondary mb-0">
+                                Incident reports will appear here when submitted.
+                            </p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <a href="{% url 'dashboard' %}" class="btn btn-light mt-4">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}

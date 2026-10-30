@@ -1,0 +1,29 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} | ResiCare{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 850px;">
+        <div class="card-body p-4 p-md-5">
+            {% if not event.is_published %}
+            <span class="badge text-bg-warning">Draft — Management only</span>
+            {% endif %}
+            <h1 class="h3 fw-bold mt-2">{{ event.title }}</h1>
+            <p><i class="bi bi-geo-alt text-primary"></i> {{ event.venue }}</p>
+            <p><i class="bi bi-calendar-event text-primary"></i>
+                {{ event.starts_at|date:"d M Y, h:i A" }} – {{ event.ends_at|date:"d M Y, h:i A" }}
+            </p>
+            <p class="small text-secondary">Audience: {{ event.get_audience_display }}</p>
+            <hr>
+            <div style="white-space: pre-line;">{{ event.description }}</div>
+            {% if is_management %}
+            <a href="{% url 'community:event_edit' event.pk %}" class="btn btn-primary mt-4">Edit Event</a>
+            {% endif %}
+            <a href="{% url 'community:dashboard' %}" class="btn btn-light mt-4">Back</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,188 @@
+
+{% extends "base.html" %}
+
+{% block title %}Maintenance Management | ResiCare{% endblock %}
+
+{% block extra_css %}
+<style>
+    .maintenance-hero {
+        background: linear-gradient(120deg, #12372a, #198754);
+        color: white;
+        border-radius: 22px;
+        padding: 30px;
+    }
+    .stat-card {
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        padding: 22px;
+        height: 100%;
+        background: white;
+    }
+    .request-card {
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .request-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,.07);
+    }
+    .status-pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        background: #e9ecef;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+    .status-submitted { background: #fff3cd; color: #856404; }
+    .status-in_progress { background: #cfe2ff; color: #084298; }
+    .status-on_hold { background: #f8d7da; color: #842029; }
+    .status-resolved { background: #d1e7dd; color: #0f5132; }
+    .status-closed { background: #e2e3e5; color: #41464b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5">
+
+    <section class="maintenance-hero mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+            <div>
+                <p class="text-uppercase small mb-2 opacity-75">
+                    ResiCare / Community Services
+                </p>
+                <h1 class="h2 fw-bold mb-2">Maintenance Management</h1>
+                <p class="mb-0 opacity-75">
+                    Report issues, track progress and keep your community running smoothly.
+                </p>
+            </div>
+
+            {% if role == "RESIDENT" %}
+            <a href="{% url 'maintenance:create_request' %}"
+               class="btn btn-light btn-lg fw-semibold">
+                <i class="bi bi-plus-circle me-2"></i>Report an Issue
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="text-secondary small">Total Requests</div>
+                <div class="display-6 fw-bold">{{ total_count }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="text-secondary small">Open Requests</div>
+                <div class="display-6 fw-bold text-warning">{{ open_count }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="text-secondary small">Resolved Requests</div>
+                <div class="display-6 fw-bold text-success">{{ resolved_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h4 fw-bold mb-1">
+                {% if role == "RESIDENT" %}
+                    My Maintenance Requests
+                {% elif role == "MANAGEMENT" %}
+                    All Maintenance Requests
+                {% else %}
+                    Requests Assigned to Me
+                {% endif %}
+            </h2>
+            <p class="text-secondary mb-0 small">
+                Select a request to view its details.
+            </p>
+        </div>
+    </div>
+
+    {% if requests_list %}
+    <div class="row g-3">
+        {% for item in requests_list %}
+        <div class="col-12 col-lg-6">
+            <div class="request-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <div class="small text-secondary">Request #{{ item.id }}</div>
+                        <h3 class="h5 fw-bold mt-1 mb-1">{{ item.title }}</h3>
+                    </div>
+                    <span class="status-pill status-{{ item.status|lower }}">
+                        {{ item.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="small text-secondary mb-2">
+                    <i class="bi bi-tools me-2"></i>{{ item.get_category_display }}
+                    <span class="mx-2">·</span>
+                    <i class="bi bi-geo-alt me-1"></i>{{ item.location }}
+                </div>
+
+                <p class="mb-2">
+                    {{ item.description|truncatechars:130 }}
+                </p>
+
+                <div class="d-flex flex-wrap gap-2 small mb-3">
+                    <span class="badge text-bg-light border">
+                        Priority: {{ item.get_priority_display }}
+                    </span>
+                    {% if role != "RESIDENT" %}
+                    <span class="badge text-bg-light border">
+                        Resident: {{ item.resident.user.get_full_name|default:item.resident.user.username }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="small text-secondary mb-3">
+                    Submitted {{ item.created_at|date:"d M Y, h:i A" }}
+                    {% if item.assigned_to %}
+                    <br>Assigned to: {{ item.assigned_to.get_full_name|default:item.assigned_to.username }}
+                    {% else %}
+                    <br>Not assigned yet
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'maintenance:request_detail' item.id %}"
+                   class="btn btn-outline-success">
+                    View Details <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center bg-white border rounded-4 p-5">
+        <i class="bi bi-clipboard-check display-4 text-success"></i>
+        <h3 class="h5 fw-bold mt-3">No maintenance requests yet</h3>
+        <p class="text-secondary mb-3">
+            {% if role == "RESIDENT" %}
+                Submit a request whenever something needs attention in your apartment or community.
+            {% elif role == "SECURITY" %}
+                There are currently no requests assigned to your account.
+            {% else %}
+                Resident maintenance requests will appear here when submitted.
+            {% endif %}
+        </p>
+        {% if role == "RESIDENT" %}
+        <a href="{% url 'maintenance:create_request' %}" class="btn btn-success">
+            Submit Your First Request
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

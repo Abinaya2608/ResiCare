@@ -1,0 +1,219 @@
+
+{% extends "base.html" %}
+
+{% block title %}Facilities | ResiCare{% endblock %}
+
+{% block extra_css %}
+<style>
+    .facility-hero {
+        background: linear-gradient(120deg, #173d70, #2868ad);
+        border-radius: 22px;
+        color: white;
+    }
+    .facility-card, .booking-card {
+        border: 1px solid #e8ecef;
+        border-radius: 18px;
+        background: white;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .facility-card:hover, .booking-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,.07);
+    }
+    .stat-card {
+        border: 1px solid #e8ecef;
+        border-radius: 16px;
+        padding: 20px;
+        background: white;
+        height: 100%;
+    }
+    .status-pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d1e7dd; color: #0f5132; }
+    .status-rejected { background: #f8d7da; color: #842029; }
+    .status-cancelled { background: #e2e3e5; color: #41464b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-lg-5">
+
+    <section class="facility-hero p-4 p-lg-5 mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+                <p class="small text-white-50 fw-semibold mb-2">RESICARE COMMUNITY SERVICES</p>
+                <h1 class="h2 fw-bold mb-2">Facilities &amp; Bookings</h1>
+                <p class="text-white-50 mb-0">
+                    Discover shared amenities and manage facility booking requests.
+                </p>
+            </div>
+
+            {% if role == "RESIDENT" %}
+            <a href="{% url 'facilities:create_booking' %}"
+               class="btn btn-light btn-lg fw-semibold">
+                <i class="bi bi-calendar-plus me-2"></i>Book a Facility
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="row g-3 mb-5">
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="small text-secondary">Available Facilities</div>
+                <div class="display-6 fw-bold">{{ facilities.count }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="small text-secondary">Booking Requests</div>
+                <div class="display-6 fw-bold">{{ total_bookings }}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="small text-secondary">
+                    {% if role == "MANAGEMENT" %}Pending Approval{% else %}Approved Bookings{% endif %}
+                </div>
+                <div class="display-6 fw-bold text-success">
+                    {% if role == "MANAGEMENT" %}{{ pending_count }}{% else %}{{ approved_count }}{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="mb-5">
+        <div class="mb-3">
+            <h2 class="h4 fw-bold mb-1">Community Facilities</h2>
+            <p class="text-secondary mb-0">
+                View the facilities currently available for booking.
+            </p>
+        </div>
+
+        <div class="row g-3">
+            {% for facility in facilities %}
+            <div class="col-sm-6 col-xl-4">
+                <div class="facility-card p-4 h-100">
+                    <div class="d-flex justify-content-between gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center"
+                             style="width:50px;height:50px;background:#eaf2ff;color:#1e4e8c">
+                            <i class="bi bi-building fs-3"></i>
+                        </div>
+                        <span class="badge text-bg-success align-self-start">Available</span>
+                    </div>
+
+                    <h3 class="h5 fw-bold mt-3">{{ facility.name }}</h3>
+                    <p class="text-secondary small">{{ facility.description }}</p>
+
+                    <div class="small mb-2">
+                        <i class="bi bi-geo-alt me-2 text-secondary"></i>{{ facility.location }}
+                    </div>
+                    <div class="small mb-2">
+                        <i class="bi bi-people me-2 text-secondary"></i>
+                        Capacity: {{ facility.capacity }}
+                    </div>
+                    <div class="small mb-3">
+                        <i class="bi bi-clock me-2 text-secondary"></i>
+                        {{ facility.opening_time|time:"h:i A" }} – {{ facility.closing_time|time:"h:i A" }}
+                    </div>
+
+                    {% if role == "RESIDENT" %}
+                    <a href="{% url 'facilities:create_booking' %}"
+                       class="btn btn-outline-primary btn-sm">
+                        Request a Booking <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="border rounded-4 p-5 text-center">
+                    <i class="bi bi-building display-4 text-secondary"></i>
+                    <h3 class="h5 fw-bold mt-3">No facilities added yet</h3>
+                    <p class="text-secondary mb-0">
+                        Management can add facilities through Django Admin.
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="h4 fw-bold mb-1">
+            {% if role == "RESIDENT" %}
+                My Booking Requests
+            {% elif role == "MANAGEMENT" %}
+                All Booking Requests
+            {% else %}
+                Approved Facility Bookings
+            {% endif %}
+        </h2>
+        <p class="text-secondary mb-3">Review booking status and request details.</p>
+
+        <div class="row g-3">
+            {% for booking in bookings %}
+            <div class="col-12 col-lg-6">
+                <div class="booking-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="small text-secondary">Booking #{{ booking.id }}</div>
+                            <h3 class="h5 fw-bold mt-1 mb-1">{{ booking.facility.name }}</h3>
+                        </div>
+                        <span class="status-pill status-{{ booking.status|lower }}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </div>
+
+                    {% if role != "RESIDENT" %}
+                    <p class="small text-secondary mb-2">
+                        Resident: {{ booking.resident.user.get_full_name|default:booking.resident.user.username }}
+                    </p>
+                    {% endif %}
+
+                    <div class="small mb-2">
+                        <i class="bi bi-calendar3 me-2 text-secondary"></i>
+                        {{ booking.booking_date|date:"D, d M Y" }}
+                    </div>
+                    <div class="small mb-2">
+                        <i class="bi bi-clock me-2 text-secondary"></i>
+                        {{ booking.start_time|time:"h:i A" }} – {{ booking.end_time|time:"h:i A" }}
+                    </div>
+                    <p class="small text-secondary mb-3">
+                        Purpose: {{ booking.purpose }}
+                    </p>
+
+                    <a href="{% url 'facilities:booking_detail' booking.id %}"
+                       class="btn btn-outline-primary btn-sm">
+                        View Details <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="border rounded-4 p-4 text-center">
+                    <i class="bi bi-calendar2-check fs-1 text-secondary"></i>
+                    <p class="fw-semibold mt-2 mb-1">No booking requests found</p>
+                    <p class="text-secondary small mb-0">
+                        Booking records will appear here when available.
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="mt-4">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+</div>
+{% endblock %}
